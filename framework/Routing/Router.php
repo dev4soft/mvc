@@ -5,6 +5,7 @@ namespace Framework\Routing;
 class Router
 {
     protected array $routes = [];
+    protected array $errorHandlers = [];
 
     public function add(
         string $method,
@@ -71,6 +72,45 @@ class Router
         }
 
         return null;
+    }
+
+
+    public function errorHandler(int $code, callable $handler)
+    {
+        $this->errorHandlers[$code] = $handler;
+    }
+
+
+    public function dispatchNotAllowed()
+    {
+        $this->errorHandlers[400] ??= fn() => "not allowed";
+
+        return $this->errorHandlers[400]();
+    }
+
+
+    public function dispatchError()
+    {
+        $this->errorHandlers[500] ??= fn() => "server error";
+
+        return $this->errorHandlers[500]();
+    }
+
+
+    public function dispatchNotFound()
+    {
+        $this->errorHandlers[404] ??= fn() => "not found";
+
+        return $this->errorHandlers[404]();
+    }
+
+
+    public function redirect($path)
+    {
+        header(
+            "Location: {$path}", $replace = true, $code = 301
+        );
+        exit;
     }
 }
 
